@@ -1,0 +1,103 @@
+`timescale 1ns / 1ps
+
+module freq_counter # (
+    parameter CLK_FREQ = 100_000_000,
+    parameter RESOLVE_WAIT_CYCLE = 5,
+    parameter WATCHDOG_TICK = 1_000_000
+) (
+    input wire i_pwm,
+    input wire i_clk,
+    input wire i_resetn,
+
+    output reg [13:0] o_freq_khz,
+    output reg [2:0] o_status
+);
+    
+reg [31:0] counter_live, counter_calc;
+reg [7:0] counter_cycle;
+reg [31:0] watchdog_cntr;
+reg cntr_latch;
+wire w_pwm_re;
+
+// COUNTER LOGIC (FREQ) 
+
+always @(posedge i_clk or negedge i_resetn) begin 
+    if (!i_resetn) begin
+        counter_live <= 0;
+        counter_calc <= 0;
+        cntr_latch <= 0;
+    end else begin
+        if (w_pwm_re) begin
+            counter_live <= 0;
+            counter_calc <= counter_live + 1;
+            cntr_latch <= 1;
+        end else begin
+            if (cntr_latch) 
+                counter_live <= counter_live + 1; 
+        end
+    end
+end
+
+// COUNTER LOGIC (FREQ RESOLVE)
+
+always @(posedge i_clk or negedge i_resetn) begin
+    if (!i_resetn) begin
+        counter_cycle <= 0;
+    end else begin
+        if (w_pwm_re) begin
+            if (counter_cycle == RESOLVE_WAIT_CYCLE) 
+                counter_cycle <= 0;
+            else
+                counter_cycle <= counter_cycle + 1;
+        end
+    end
+end
+
+// COUNTER LOGIC (WATCHDOG)
+
+always @(posedge i_clk or negedge i_resetn) begin
+    if (!i_resetn) begin
+        watchdog_cntr <= 0;
+    end else begin
+        if (w_pwm_re)
+            watchdog_cntr <= 0;
+        else if (watchdog_cntr == WATCHDOG_TICK - 1) 
+            watchdog_cntr <= watchdog_cntr;
+        else
+            watchdog_cntr <= watchdog_cntr + 1;     
+    end
+end
+
+// REGISTERED OUTPUT CALCULATION
+
+always @(posedge i_clk or negedge i_resetn) begin
+    if (!i_resetn) begin
+        o_freq_khz <= 0;
+    end else begin
+        if (counter_cycle == RESOLVE_WAIT_CYCLE)
+            o_freq_khz <= CLK_FREQ / (1000 * counter_calc);
+    end
+end
+
+// STATUS HANDLING
+
+always @(*) begin
+    if (watchdog_cntr == WATCHDOG_TICK - 1)
+        o_status <= 3'b111;                 
+    else if (o_freq_khz > 9999)
+        o_status <= 3'b100;
+    else if (o_freq_khz <= 0)
+        o_status <= 3'b001;     
+    else
+        o_status <= 3'b000;
+end
+
+rising_edge_detect pwm_re
+(
+    .clk(i_clk), 
+    .resetn(i_resetn),
+    .level(i_pwm),
+    .tick(w_pwm_re)
+);
+
+endmodule
