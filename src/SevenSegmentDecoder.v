@@ -241,10 +241,12 @@ end
     end
 
     // R8: all four digits must be reachable (cyclic switching)
-    cover(active_digit == 2'd0);
-    cover(active_digit == 2'd1);
-    cover(active_digit == 2'd2);
-    cover(active_digit == 2'd3);
+    always @(*) begin
+        cover(active_digit == 2'd0);
+        cover(active_digit == 2'd1);
+        cover(active_digit == 2'd2);
+        cover(active_digit == 2'd3);
+    end
 `endif
 
 endmodule
