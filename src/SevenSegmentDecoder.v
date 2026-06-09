@@ -104,8 +104,6 @@ always @(*) begin
     digit_thousands = (i_value / 1000) % 10;
 end
 
-
-
 // prepare display characters
 always @(*) begin
 
@@ -196,5 +194,12 @@ always @(*) begin
     else
         o_dp = COMMON_ANODE ? 1'b1 : 1'b0; // decimal point off
 end
+
+`ifdef FORMAL
+    // R8: exactly one digit must be active at all times (one-hot)
+    always @(*) begin
+        assert($onehot(digit_en_raw));
+    end
+`endif
 
 endmodule
