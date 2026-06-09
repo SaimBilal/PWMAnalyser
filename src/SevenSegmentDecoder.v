@@ -195,11 +195,56 @@ always @(*) begin
         o_dp = COMMON_ANODE ? 1'b1 : 1'b0; // decimal point off
 end
 
+// formal verification tests
 `ifdef FORMAL
     // R8: exactly one digit must be active at all times (one-hot)
     always @(*) begin
         assert($onehot(digit_en_raw));
     end
+
+    // R3: when status is LO, char0 must be O, char1 must be L and char2/3 must be blank
+    always @(*) begin
+        if (i_status == 3'b001) begin
+            assert(char0 == CHAR_O);
+            assert(char1 == CHAR_L);
+            assert(char2 == CHAR_BLANK);
+            assert(char3 == CHAR_BLANK);
+        end
+    end
+
+    // R4: when status is HI, char0 must be I, char1 must be H and char2/3 must be blank
+    always @(*) begin
+        if (i_status == 3'b100) begin
+            assert(char0 == CHAR_I);
+            assert(char1 == CHAR_H);
+            assert(char2 == CHAR_BLANK);
+            assert(char3 == CHAR_BLANK);
+        end
+    end
+
+    // R5: when status is ERR, char0 must be R, char1 must be R, char2 must be E and char3 must be blank
+    always @(*) begin
+        if (i_status == 3'b111) begin
+            assert(char0 == CHAR_R);
+            assert(char1 == CHAR_R);
+            assert(char2 == CHAR_E);
+            assert(char3 == CHAR_BLANK);
+        end
+    end
+
+    // R7: decimal point is only active in duty cycle mode (status 010) on digit 2
+    always @(*) begin
+        if ((i_status == 3'b010) && (active_digit == 2'd2))
+            assert(o_dp == 1'b0); // active low for common anode
+        else
+            assert(o_dp == 1'b1); // inactive
+    end
+
+    // R8: all four digits must be reachable (cyclic switching)
+    cover(active_digit == 2'd0);
+    cover(active_digit == 2'd1);
+    cover(active_digit == 2'd2);
+    cover(active_digit == 2'd3);
 `endif
 
 endmodule

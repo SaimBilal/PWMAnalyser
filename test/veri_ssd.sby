@@ -1,6 +1,6 @@
 [tasks]
-prove_cover
-prove_bmc
+taskcover prove_cover
+taskbmc prove_bmc
 
 [options]
 prove_cover: mode cover
