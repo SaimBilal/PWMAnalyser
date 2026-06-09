@@ -3,13 +3,13 @@
 module freq_counter # (
     parameter CLK_FREQ = 100_000_000,
     parameter RESOLVE_WAIT_CYCLE = 5,
-    parameter WATCHDOG_TICK = 1_000_000
+    parameter WATCHDOG_TICK = 100_000_000
 ) (
     input wire i_pwm,
     input wire i_clk,
     input wire i_resetn,
 
-    output reg [13:0] o_freq_khz,
+    output wire [13:0] o_freq_khz,
     output reg [2:0] o_status
 );
     
@@ -18,6 +18,7 @@ reg [7:0] counter_cycle;
 reg [31:0] watchdog_cntr;
 reg cntr_latch;
 wire w_pwm_re;
+reg [31:0] freq; 
 
 // COUNTER LOGIC (FREQ) 
 
@@ -72,21 +73,24 @@ end
 
 always @(posedge i_clk or negedge i_resetn) begin
     if (!i_resetn) begin
-        o_freq_khz <= 0;
+        freq <= 0;
     end else begin
-        if (counter_cycle == RESOLVE_WAIT_CYCLE)
-            o_freq_khz <= CLK_FREQ / (1000 * counter_calc);
+        if (counter_cycle == RESOLVE_WAIT_CYCLE) begin
+            freq <= CLK_FREQ / (1000 * counter_calc);
+        end    
     end
 end
+
+assign o_freq_khz = freq[13:0];
 
 // STATUS HANDLING
 
 always @(*) begin
     if (watchdog_cntr == WATCHDOG_TICK - 1)
         o_status <= 3'b111;                 
-    else if (o_freq_khz > 9999)
+    else if (freq > 9999)
         o_status <= 3'b100;
-    else if (o_freq_khz <= 0)
+    else if (freq <= 0)
         o_status <= 3'b001;     
     else
         o_status <= 3'b000;
