@@ -67,6 +67,8 @@ rising_edge_detect pwm_re
 
 // formal verification tests
 `ifdef FORMAL
+    `include "falling_edge_detect.v"
+    `include "rising_edge_detect.v"
 
     // R6: o_duty_cycle must always be in range 0 to 100
     always @(*) begin
@@ -78,9 +80,9 @@ rising_edge_detect pwm_re
     always @(*) begin
         for (i = 0; i <= 100; i = i + 1) begin
             cover(o_duty_cycle == i);
-        end    
+        end
     end
-    
+
     // alternative: only cover representative values (uncomment if loop is too slow)
     // cover(o_duty_cycle == 0);
     // cover(o_duty_cycle == 50);
@@ -88,8 +90,3 @@ rising_edge_detect pwm_re
 `endif
 
 endmodule
-
-`ifdef FORMAL
-`include "falling_edge_detect.v"
-`include "rising_edge_detect.v"
-`endif

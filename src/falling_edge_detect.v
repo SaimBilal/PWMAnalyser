@@ -40,12 +40,11 @@ module falling_edge_detect
 
          // Bounded Checking value 1 at the tick
          if(delay_reg == 1'b0)
-            _bf_01_: assert(tick==1'b0);  
+            _bf_01_: assert(tick==1'b0);
 
       end
    end
 
 `endif
-
 
 endmodule

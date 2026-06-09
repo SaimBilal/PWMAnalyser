@@ -40,14 +40,12 @@ module rising_edge_detect
 
          // Bounded Checking value 1 at the tick
          if(delay_reg == 1'b1)
-            _b_01_: assert(tick==1'b0);  
+            _b_01_: assert(tick==1'b0);
 
       end
    end
 
 `endif
-
-
 
 endmodule
 
