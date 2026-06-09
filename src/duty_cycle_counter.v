@@ -75,14 +75,21 @@ rising_edge_detect pwm_re
 
     // R6: all duty cycle values 0 to 100 must be reachable
     integer i;
-    for (i = 0; i <= 100; i = i + 1) begin
-        cover(o_duty_cycle == i);
+    always @(*) begin
+        for (i = 0; i <= 100; i = i + 1) begin
+            cover(o_duty_cycle == i);
+        end    
     end
-
+    
     // alternative: only cover representative values (uncomment if loop is too slow)
     // cover(o_duty_cycle == 0);
     // cover(o_duty_cycle == 50);
     // cover(o_duty_cycle == 100);
-endif
+`endif
 
 endmodule
+
+`ifdef FORMAL
+`include "falling_edge_detect.v"
+`include "rising_edge_detect.v"
+`endif

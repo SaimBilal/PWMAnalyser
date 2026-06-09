@@ -1,6 +1,2 @@
-./test/veri/
-./test/veri_fe/
-./test/veri_fe_taskbmc/
-./test/veri_fe_taskcover/
-./test/veri_taskbmc/
-./test/veri_taskcover/
+test/veri*/
+test/sim_build
